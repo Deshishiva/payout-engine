@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payout Dashboard</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: gray;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            background: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background: gray;
+        }
+
+        button:hover:not(:disabled) {
+            background: #45a049;
+        }
+
+        input {
+            padding: 10px;
+            width: 65%;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .balance-box {
+            font-size: 22px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .result {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>💳 Merchant Dashboard</h2>
+    <p class="subtitle">Payout Engine Demo</p>
+
+    <!-- Balance -->
+    <div class="card">
+        <h3>Balance</h3>
+        <div id="balance" class="balance-box">Loading...</div>
+        <br>
+        <button onclick="getBalance()">Refresh Balance</button>
+    </div>
+
+    <!-- Add Money -->
+    <div class="card">
+        <h3>Add Money</h3>
+        <input type="number" id="addAmount" placeholder="Enter amount (paise)">
+        <button onclick="addMoney()">Add</button>
+
+        <p id="addResult" class="result"></p>
+    </div>
+
+    <!-- Payout -->
+    <div class="card">
+        <h3>Send Payout</h3>
+        <input type="number" id="amount" placeholder="Enter amount (paise)">
+        <button id="payBtn" onclick="sendPayout()">Send</button>
+
+        <p id="result" class="result"></p>
+    </div>
+
+</div>
+
+<script>
+    const merchantId = 1;
+
+    // Load balance on page load
+    window.onload = getBalance;
+
+    function getBalance() {
+        fetch(`/api/balance/${merchantId}/`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("balance").innerText =
+                    "₹ " + (data.balance / 100);
+            });
+    }
+
+    function addMoney() {
+        const input = document.getElementById("addAmount");
+        const amount = input.value;
+        const result = document.getElementById("addResult");
+
+        if (!amount) {
+            result.innerText = "Enter amount";
+            result.className = "result error";
+            return;
+        }
+
+        fetch(`/api/add-money/${merchantId}/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ amount: parseInt(amount) })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                result.innerText = data.error;
+                result.className = "result error";
+            } else {
+                result.innerText = "₹ " + (data.amount / 100) + " added!";
+                result.className = "result success";
+
+                input.value = amount;
+                input.focus();
+                getBalance();
+            }
+        });
+    }
+
+    function sendPayout() {
+        const amount = document.getElementById("amount").value;
+        const btn = document.getElementById("payBtn");
+        const result = document.getElementById("result");
+
+        if (!amount) {
+            result.innerText = "Enter amount";
+            result.className = "result error";
+            return;
+        }
+
+        btn.disabled = true;
+        result.innerText = "Creating payout...";
+
+        fetch(`/api/payout/${merchantId}/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Idempotency-Key": Date.now().toString()
+            },
+            body: JSON.stringify({ amount: parseInt(amount) })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                result.innerText = data.error;
+                result.className = "result error";
+                btn.disabled = false;
+                return;
+            }
+
+            const payoutId = data.payout_id;
+
+            result.innerText = "Status: pending";
+
+            // 🔁 Polling for status
+            const interval = setInterval(() => {
+                fetch(`/api/payout-status/${payoutId}/`)
+                    .then(res => res.json())
+                    .then(statusData => {
+                        result.innerText = "Status: " + statusData.status;
+
+                        if (
+                            statusData.status === "completed" ||
+                            statusData.status === "failed"
+                        ) {
+                            clearInterval(interval);
+                            btn.disabled = false;
+                            getBalance();
+                        }
+                    });
+            }, 1000);
+        });
+    }
+</script>
+
+</body>
+</html>
