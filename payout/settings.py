@@ -9,7 +9,8 @@ SECRET_KEY = 'django-insecure-koa*6c2p!*eb0@ma2wo6+l@6)__-+f1!n!xx)+%qy+m)#1z1su
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# ✅ Updated for deployment
+ALLOWED_HOSTS = ['*']
 
 
 # APPLICATIONS
@@ -45,11 +46,11 @@ MIDDLEWARE = [
 ROOT_URLCONF = 'payout.urls'
 
 
-# TEMPLATES ✅ (FIXED)
+# TEMPLATES
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # 👈 important line
+        'DIRS': [BASE_DIR / 'templates'],  # 👈 important
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -104,6 +105,7 @@ USE_TZ = True
 
 # STATIC FILES
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # ✅ required for Render
 
 
 # DEFAULT PRIMARY KEY
