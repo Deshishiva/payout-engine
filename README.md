@@ -1,5 +1,3 @@
-
-
 # 💸 Payout Engine (Django)
 
 A mini payout system built using Django that simulates real-world fintech behavior such as ledger-based balance management, idempotent payout APIs, and concurrency-safe transactions.
@@ -8,9 +6,7 @@ A mini payout system built using Django that simulates real-world fintech behavi
 
 ## 🌍 Live Demo
 
-👉 **Live App:** https://your-app-link.onrender.com
-
-*(Replace this with your actual deployed link)*
+👉 **Live Link:** https://payout-engine-f109.onrender.com/
 
 ---
 
@@ -22,7 +18,7 @@ A mini payout system built using Django that simulates real-world fintech behavi
 * 🔁 Idempotency support (prevents duplicate payouts)
 * 🔒 Concurrency-safe transactions using database locking
 * 🔄 Background payout processing (worker simulation)
-* 🌐 Simple frontend dashboard (HTML + css + JS)
+* 🌐 Simple frontend dashboard (HTML + CSS + JS)
 * 💵 Add money feature for testing/demo
 
 ---
@@ -72,7 +68,7 @@ cd payout
 ### 2. Install dependencies
 
 ```bash
-pip install django djangorestframework
+pip install -r requirements.txt
 ```
 
 ---
@@ -145,23 +141,17 @@ GET /api/payout-status/<payout_id>/
 Balance = Total Credits - Total Debits
 ```
 
----
-
 ### 🔁 Idempotency
 
 * Prevents duplicate payouts
 * Uses `Idempotency-Key` header
 * Stores response for repeated requests
 
----
-
 ### 🔒 Concurrency Handling
 
 * Uses `transaction.atomic()`
 * Uses `select_for_update()`
 * Prevents race conditions
-
----
 
 ### 🔄 Background Processing
 
@@ -186,6 +176,16 @@ python manage.py process_payouts
 
 ---
 
+## 🧪 Demo Setup
+
+For demonstration purposes, a default merchant is automatically created when the application loads.
+
+This ensures the system works out-of-the-box without requiring manual database setup.
+
+In a production environment, merchants would be created through a proper onboarding flow.
+
+---
+
 ## 📸 Working Images of Project
 
 <p align="center">
@@ -202,7 +202,7 @@ python manage.py process_payouts
 ## ⚠️ Notes
 
 * Uses SQLite for development
-* Django dev server is not for production
+* Django development server is not suitable for production
 
 ---
 
@@ -210,7 +210,7 @@ python manage.py process_payouts
 
 * Celery / background worker
 * Retry mechanism
-* Authentication
+* Authentication system
 * React frontend
 
 ---
